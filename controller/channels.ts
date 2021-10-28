@@ -23,7 +23,6 @@ export const getChannelsToDiscover = async (req: Next.Custom, res: NextApiRespon
                 }
             }
         })
-        console.log(channelsToDiscover)
 
         if (channelsToDiscover.length === 0) {
             return res.status(200).json({
