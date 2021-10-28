@@ -21,7 +21,9 @@ export const getChannelsToDiscover = async (req: Next.Custom, res: NextApiRespon
                 NOT:{
                      userId: Number(id) 
                 }
-            }
+            },
+            include: { channel: true },
+
         })
 
         if (channelsToDiscover.length === 0) {
