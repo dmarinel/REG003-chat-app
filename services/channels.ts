@@ -16,8 +16,8 @@ export const getUserChannels = async (token: string, uid: number) => {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
-            'Authentication': 'Bearer ' + `${token}`,
-            'Discover': 'false',
+            'Authentication': 'Bearer ' + `${token}`
+            
         }
     })
     const data = await userChannelsService.json();
@@ -32,8 +32,8 @@ export const getChannelsToDiscover = async (token: string, uid: number) => {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
-            'Authentication': 'Bearer ' + `${token}`,
-            'Discover': 'true',
+            'Authentication': 'Bearer ' + `${token}`
+    
         }
     })
     return await userChannelsService.json();

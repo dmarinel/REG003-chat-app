@@ -8,22 +8,20 @@ export const getChannelsToDiscover = async (req: Next.Custom, res: NextApiRespon
     //TODO: IMPROVE QUERY GETALLUSER
     try {
         const { id } = req.query;
+        console.log(id);
+        
         const { cursor } = req.headers
         let myCursor = cursor ? Number(req.headers.cursor) : 1;
-        const channelsToDiscover = await prisma.channel.findMany({
+        const channelsToDiscover = await prisma.channelUser.findMany({
             take: 10,
             cursor: {
                 id: myCursor,
             },
-            where: {
-                NOT: {
-                    id: Number(id),
-                },
-            },
-            orderBy: {
-                createdAt: "desc"
+            where:{
+                NOT:{
+                     userId: Number(id) 
+                }
             }
-
         })
         console.log(channelsToDiscover)
 
