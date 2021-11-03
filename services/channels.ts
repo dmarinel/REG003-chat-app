@@ -61,18 +61,16 @@ export const getAllChannels = async (token: string) => {
   return await data;
 };
 
-export const getChannelById = (token: string, channelId: number) => {
-  const channelByIdService = fetch(`${url}/api/channel/${channelId}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + `${token}`,
-    },
-  })
-    .then((response) => response.json())
-    .then((data) => data)
-    .catch((err) => "error");
-  return channelByIdService;
-};
 
 
+export const getChannelById = async (token: string, channelId: number) => {
+    const channelByIdService = await fetch(`${url}/api/channel/${channelId}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + `${token}`
+        }
+    })
+    const data = await channelByIdService.json();
+    return data;
+}

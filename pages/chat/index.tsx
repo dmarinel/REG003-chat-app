@@ -16,10 +16,15 @@ import { getUserById } from "../../services/user";
 
 const Chat: NextPage = () => {
   // @ts-ignore
-  const { socket, setSocket } = useContext(SocketContext);
+  const {
+    socket,
+    setSocket,
+    listChats,
+    setListChats,
+    listDiscover,
+    setDiscover,
+  } = useContext(SocketContext);
 
-  const [listChats, setListChats] = useState<Array<any>>();
-  const [listDiscover, setDiscover] = useState<Array<any>>();
   const [activeSearch, setActiveSearch] = useState<boolean>(false);
   const [activeChannel, setActiveChannel] = useState<boolean>(true);
   const [currentUser, setCurrentUser] = useState<any>();
@@ -38,7 +43,6 @@ const Chat: NextPage = () => {
       setCurrentUser(data.content)
     );
     const sockets = socket;
-    console.log(sockets);
     sockets.on("connect", () => {
       console.log("conectado");
     });
@@ -48,7 +52,6 @@ const Chat: NextPage = () => {
   }, []);
 
   useEffect(() => {
-
     async function fetchData() {
       if (token) {
         // console.log(payloadJSON.uid)
@@ -63,13 +66,10 @@ const Chat: NextPage = () => {
 
         for (const channel of channels) {
           const resp = await getChannelById(token, channel);
-          console.log('channel receive', resp);
+          console.log("channel receive", resp);
           channelsArr.push(resp);
         }
-        console.log('channelsArr', channelsArr);
-
         setDiscover(channelsArr);
-
       }
     }
     fetchData();
@@ -94,7 +94,7 @@ const Chat: NextPage = () => {
       {activeSearch ? <SearchSide></SearchSide> : ""}
       {activeChannel ? (
         listChats?.length ? (
-          listChats.map((chat) => {
+          listChats.map((chat: any) => {
             const { name, channelImage, updatedAt, id } = chat.channel;
             return (
               <>
@@ -113,8 +113,7 @@ const Chat: NextPage = () => {
           <p>No te has unido a canales aun </p>
         )
       ) : listDiscover?.length ? (
-        listDiscover.map((chat) => {
-          console.log('chat', chat);
+        listDiscover.map((chat: any) => {
           const { name, description, channelImage, id } = chat;
           return (
             <>
