@@ -7,17 +7,17 @@ interface PostChannelProps {
   description: string;
 }
 
-export const postChannel = async (obj: PostChannelProps) => {
+export const postChannel = async (obj: any) => {
   const req = await fetch(`${url}/api/channel`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       authorization: `Bearer ${tokens}`,
     },
-    body: JSON.stringify(obj),
+    body: JSON.stringify({...obj}),
   });
   const data = await req.json();
-  console.log(data);
+  
 
   return data;
 };

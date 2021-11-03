@@ -18,13 +18,8 @@ const ModalChannel: NextPage<Props> = ({
   setIsModalVisible,
   isModalVisible,
 }) => {
-
   const onFinish = async (values: onFinishProps) => {
-    console.log("hola mundooo values");
     const data = await postChannel(values);
-    console.log(data);
-    
-    
 
     setIsModalVisible(false);
   };
@@ -32,8 +27,6 @@ const ModalChannel: NextPage<Props> = ({
   const onCancel = () => {
     setIsModalVisible(false);
   };
-
-
 
   return (
     <Modal
