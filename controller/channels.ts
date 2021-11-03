@@ -120,6 +120,8 @@ export const createChannel = async (req: Next.Custom, res: NextApiResponse) => {
         const uid = req.authentication?.uid;
 
         if ((!name) || (!uid)) {
+            console.log('error 400');
+            
             return err(400, req, res);
         }
 
