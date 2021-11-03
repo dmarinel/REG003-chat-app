@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getAllChannels, createChannel } from '../../../controller/channels';
+import { getChannelsToDiscover, createChannel, getAllChannels } from '../../../controller/channels';
 import { requireAuth } from "../../../middlewares/auth";
 
 export default function user(

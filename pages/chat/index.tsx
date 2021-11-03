@@ -9,8 +9,10 @@ import ListDiscover from "../../components/List-Chat/ListDiscover";
 import {
   getUserChannels,
   getChannelsToDiscover,
+  getChannelById,
 } from "../../services/channels";
 import ModalChannel from "../../components/Modal/ModalChannel";
+import { getUserById } from "../../services/user";
 
 const Chat: NextPage = () => {
   // @ts-ignore
@@ -20,11 +22,23 @@ const Chat: NextPage = () => {
   const [listDiscover, setDiscover] = useState<Array<any>>();
   const [activeSearch, setActiveSearch] = useState<boolean>(false);
   const [activeChannel, setActiveChannel] = useState<boolean>(true);
+  const [currentUser, setCurrentUser] = useState<any>();
 
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-
+  const token = localStorage.getItem("token");
+  let uid: any;
+  if (token) {
+    const payload = token.split(".")[1];
+    const decodedPayload = window.atob(payload);
+    const payloadJSON = JSON.parse(decodedPayload);
+    uid = payloadJSON.uid;
+  }
   useEffect(() => {
+    const user = getUserById(token, uid).then((data: any) =>
+      setCurrentUser(data.content)
+    );
     const sockets = socket;
+    console.log(sockets);
     sockets.on("connect", () => {
       console.log("conectado");
     });
@@ -35,30 +49,30 @@ const Chat: NextPage = () => {
 
   useEffect(() => {
     //TODO PETICION A LA BD DE CANALES DE USUARIo
-    const token = localStorage.getItem("token");
     if (token) {
-      const payload = token.split(".")[1];
-      const decodedPayload = window.atob(payload);
-      const payloadJSON = JSON.parse(decodedPayload);
-      const uid = payloadJSON.uid;
       // console.log(payloadJSON.uid)
 
       getUserChannels(token, uid).then((res) => {
+        console.log(res);
         setListChats(res);
         return res;
       });
 
       getChannelsToDiscover(token, uid).then((res) => {
-        setDiscover(res.content);
-        const channelsToDiscover = res;
-        return channelsToDiscover;
+        const channels = res.content;
+        const channelData = channels.map((channelId: number) =>
+          getChannelById(token, channelId).then((res) => res)
+        );
+        listDiscover
+          ? setDiscover([...listDiscover, channelData])
+          : setDiscover(channelData);
       });
     }
 
     // activeChannel
     //   ? setListChats(userChannels)
     //   : setDiscover(channelsToDiscover);
-  }, [activeChannel]);
+  }, []);
 
   return (
     <section className="container">
@@ -80,14 +94,15 @@ const Chat: NextPage = () => {
       {activeChannel ? (
         listChats?.length ? (
           listChats.map((chat) => {
-            const { name, lastMessage, updatedAt, id } = chat.channel;
+            const { name, channelImage, updatedAt, id } = chat.channel;
             return (
               <>
                 <ListChat
                   key={id}
+                  currentUser={currentUser}
                   channelTitle={name}
-                  lastMessage={lastMessage}
-                  time={updatedAt}
+                  channelImage={channelImage}
+                  updatedAt={updatedAt}
                   id={id}
                 ></ListChat>
               </>
@@ -98,7 +113,8 @@ const Chat: NextPage = () => {
         )
       ) : listDiscover?.length ? (
         listDiscover.map((chat) => {
-          const { name, description, channelImage, id } = chat.channel;
+          console.log(chat);
+          const { name, description, channelImage, id } = chat;
           return (
             <>
               <ListDiscover
@@ -106,7 +122,9 @@ const Chat: NextPage = () => {
                 channelTitle={name}
                 description={description}
                 channelImage={channelImage}
-                id={id}
+                channelId={id}
+                token={token}
+                userId={uid}
               ></ListDiscover>
             </>
           );

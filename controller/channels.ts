@@ -1,4 +1,3 @@
-import { any } from "jest-mock-extended";
 import type { NextApiResponse } from "next";
 import prisma from "../lib/prisma";
 import err from '../middlewares/error';
@@ -8,35 +7,73 @@ export const getChannelsToDiscover = async (req: Next.Custom, res: NextApiRespon
     //TODO: IMPROVE QUERY GETALLUSER
     try {
         const { id } = req.query;
-        
-        const { cursor } = req.headers
-        let myCursor = cursor ? Number(req.headers.cursor) : 1;
-        const channelsToDiscover = await prisma.channelUser.findMany({
-            take: 10,
-            cursor: {
-                id: myCursor,
-            },
-            where:{
-                NOT:{
-                     userId: Number(id) 
-                }
-            },
+        const userChannels = await prisma.channelUser.findMany({
+            where: { userId: Number(id) },
             include: { channel: true },
+        });
 
+        const allChannels = await prisma.channel.findMany({
+            orderBy: {
+                id: "asc"
+            },
+            select: {
+                id: true
+            }
         })
 
-        if (channelsToDiscover.length === 0) {
+        const filteredUserChannels = userChannels.map((channel) => channel.channelId)
+        const filteredAllChannels = allChannels.map((channel) => channel.id)
+
+        const channelsToDiscoverId = filteredAllChannels.filter(x => !filteredUserChannels.includes(x));
+        console.log(channelsToDiscoverId);
+        
+        // if (channelsToDiscover.length === 0) {
+        //     return res.status(200).json({
+        //         ok: true,
+        //         content: [],
+        //         message: 'There are no registered channels'
+        //     })
+        // }
+        // const lastPostInResults = channelsToDiscover[(channelsToDiscover.length - 1)] // Remember: zero-based index! :)
+        // myCursor = lastPostInResults.id
+        return res.status(200).json({
+            ok: true,
+            content: channelsToDiscoverId,
+            message: 'success',
+            // cursorChannel: myCursor,
+        })
+    } catch (error) {
+        console.log(error)
+        return err(500, req, res);
+    }
+}
+
+export const getAllChannels = async (req: Next.Custom, res: NextApiResponse) => {
+    //TODO: IMPROVE QUERY GETALLUSER
+    try {
+        const { cursor } = req.headers
+        let myCursor = cursor ? Number(req.headers.cursor) : 1;
+        const allChannels = await prisma.channel.findMany({
+            orderBy: {
+                id: "asc"
+            },
+            select: {
+                id: true
+            }
+        })
+
+        if (allChannels.length === 0) {
             return res.status(200).json({
                 ok: true,
                 content: [],
-                message: 'There are no registered channels'
+                message: 'No channels registered'
             })
         }
-        const lastPostInResults = channelsToDiscover[(channelsToDiscover.length - 1)] // Remember: zero-based index! :)
+        const lastPostInResults = allChannels[(allChannels.length - 1)] // Remember: zero-based index! :)
         myCursor = lastPostInResults.id
         return res.status(200).json({
             ok: true,
-            content: channelsToDiscover,
+            content: allChannels,
             message: 'success',
             cursorChannel: myCursor,
         })
@@ -143,3 +180,20 @@ export const createChannel = async (req: Next.Custom, res: NextApiResponse) => {
     }
 }
 
+export const getChannelById = async (req: Next.Custom, res: NextApiResponse) => {
+    try {
+        const { id } = req.query
+        const channelData = await prisma.channel.findUnique({
+            where: {
+                id: Number(id)
+            },
+
+        });
+        return res.json(channelData);
+    } catch (error) {
+        return err(500,
+            req,
+            res)
+    }
+
+}

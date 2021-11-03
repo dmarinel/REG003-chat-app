@@ -1,32 +1,78 @@
 import type { NextPage } from "next";
+import { useRouter } from "next/router";
 import React, { useState, useContext, useEffect } from "react";
 import CommentChat from "../../components/Comment/Comment";
-import HeaderChat from '../../components/Header_chat/HeaderChat'
+import HeaderChat from "../../components/Header_chat/HeaderChat";
 import SendMessage from "../../components/SendMessage/SendMessage";
-
-
-//TODO ROUTER
+import { SocketContext } from "../../contexts/socketContext";
+import { getChannelMessages } from "../../services/message";
 
 const Home: NextPage = () => {
-  const [messages, setMessages] = useState<Array<any>>([])
+  const [messages, setMessages] = useState<Array<any>>([]);
+  const token = localStorage.getItem("token");
+  const { query } = useRouter();
+  const { socket, setSocket } = useContext(SocketContext);
+  let uid: any;
+
+  if (token) {
+    const payload = token.split(".")[1];
+    const decodedPayload = window.atob(payload);
+    const payloadJSON = JSON.parse(decodedPayload);
+    uid = payloadJSON.uid;
+  }
+
   useEffect(() => {
-    setMessages([
-      { userId: 11, id: 2, body: 'skdfbakdnsjaksdnc kajsdnckajsdckasndckasd', attachment: "https://joeschmoe.io/api/v1/random", createdAt: '10-20-30', },
-      { userId: 1, id: 3, body: 'skdfbakdnsjaksdnc kajsdnckajsdckasndckasd',
-     createdAt: '10-11-30', }
-    ])
-  }, [])
+    token
+      ? getChannelMessages(token, Number(query.id)).then((res) => {
+        setMessages(res.content);
+      })
+      : "No token provided";
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    socket.on("send-message", (payload: any) => {
+      if (payload.channelId === Number(query.id)) {
+        messages.push(payload);
+        setMessages([...messages]);
+      }
+    });
+  })
+
+
   return (
     <div className="container">
-      <HeaderChat></HeaderChat>
-      {messages[0] ? messages.map(({ userId, id, body, attachment, createdAt, }) => {
+      <HeaderChat
+        token={token}
+        channelId={Number(query.id)}
+        uid={Number(uid)}
+        channelName={String(query.channel)}
+        channelImage={String(query.channelImage)}
+      ></HeaderChat>
+      {messages[0] ? (
+        messages.map(({ user, id, body, attachment, createdAt }) => {
+          return (
+            <CommentChat
+              key={id}
+              user={user}
+              body={body}
+              time={createdAt}
+              attachment={attachment}
+              token={token ? token : ""}
+            ></CommentChat>
+          );
+        })
+      ) : (
+        <p>you dont have any message</p>
+      )}
 
-        return <CommentChat key={id} userName={userId} body={body} time={createdAt} attachment={attachment}></CommentChat>
-      }
-      ) : <p>you dont have any message</p>
-      }
-
-      <SendMessage></SendMessage>
+      <SendMessage
+        channelId={Number(query.id)}
+        uid={Number(uid)}
+        username={String(query.username)}
+        userImage={String(query.userImage)}
+      ></SendMessage>
     </div>
   );
 };
